@@ -13,23 +13,37 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''#!/bin/bash
-                echo 'Test Step: We run testing tool like pytest here'
+                echo 'Test Step: Setting up environment and running pytest'
 
-                # TODO fill out the path to conda here
-                # sudo /PATH/TO/CONDA init
+                # Check if the virtual environment exists
+                if [ ! -d "./mlip" ]; then
+                    echo "Virtual environment not found, creating it..."
+                    python3 -m venv mlip
+                else
+                    echo "Virtual environment found, activating it..."
+                fi
 
-                # TODO Complete the command to run pytest
-                # sudo /PATH/TO/CONDA run -n <Envinronment Name> <Command you want to run>
+                # Activate the virtual environment
+                source ./mlip/bin/activate
 
-                echo 'pytest not runned'
-                exit 1 #comment this line after implementing Jenkinsfile
+                # Install dependencies from requirements.txt
+                if [ -f "requirements.txt" ]; then
+                    echo "Installing dependencies from requirements.txt..."
+                    pip install -r requirements.txt
+                else
+                    echo "requirements.txt not found, skipping dependency installation."
+                fi
+
+                # Run pytest in the virtual environment
+                pytest --maxfail=1 --disable-warnings -v
+
+                echo 'pytest finished successfully'
                 '''
-
             }
         }
         stage('Deploy') {
             steps {
-                echo 'In this step, we deploy our porject'
+                echo 'In this step, we deploy our project'
                 echo 'Depending on the context, we may publish the project artifact or upload pickle files'
             }
         }
